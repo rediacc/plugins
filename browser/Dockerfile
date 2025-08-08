@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y curl && \
 
 RUN curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
 
+# Environment variables for socket configuration
+ENV SOCKET_DIR=/sockets
+ENV PLUGIN_NAME=Browser
+
 ENTRYPOINT ["/bin/bash", "-c"]
 
 CMD ["cd /tmp && \
@@ -19,5 +23,5 @@ CMD ["cd /tmp && \
     --disable-type-detection-by-header \
     --noauth \
     --root /repo \
-    --socket /repo/browser.sock \
+    --socket ${SOCKET_DIR}/${PLUGIN_NAME}.sock \
     --socket-perm 384"]
