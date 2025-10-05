@@ -1,5 +1,6 @@
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
+ARG BASE_IMAGE
 LABEL com.rediacc.base-image="${BASE_IMAGE}"
 
 WORKDIR /repo
