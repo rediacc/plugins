@@ -156,7 +156,7 @@ main() {
     for plugin_dir in "$SCRIPT_DIR"/*/; do
         if [ -d "$plugin_dir" ] && [ -f "$plugin_dir/Dockerfile" ]; then
             build_plugin "$plugin_dir"
-            ((plugin_count++))
+            plugin_count=$((plugin_count + 1))
         fi
     done
 
