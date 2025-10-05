@@ -114,14 +114,17 @@ build_plugin() {
     fi
 
     log_info "Building multi-arch image for platforms: ${platforms}"
-    docker buildx build \
+
+    # Build (cache disabled for initial runs to avoid errors)
+    if ! docker buildx build \
         --platform "${platforms}" \
         ${build_args} \
         ${tag_flags} \
         ${push_flag} \
-        --cache-from type=registry,ref=rediacc/plugin-${plugin_name}:buildcache \
-        --cache-to type=registry,ref=rediacc/plugin-${plugin_name}:buildcache,mode=max \
-        "$plugin_dir"
+        "$plugin_dir"; then
+        log_error "Failed to build ${plugin_name}"
+        return 1
+    fi
 
     log_info "✓ Successfully built ${plugin_name}"
 
