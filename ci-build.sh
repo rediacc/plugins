@@ -140,12 +140,14 @@ build_plugin() {
 
 # Main execution
 main() {
+    local start_time=$(date +%s)
+
     log_info "Starting Rediacc Plugins CI Build"
     log_info "Base Image: ${BASE_IMAGE}"
 
     # Login to Docker Hub
     if [ "$DRY_RUN" != "true" ]; then
-        docker_login
+        docker_login || exit 1
     fi
 
     # Setup buildx
@@ -153,10 +155,19 @@ main() {
 
     # Find and build all plugins
     local plugin_count=0
+    local failed_plugins=()
+    local successful_plugins=()
+
     for plugin_dir in "$SCRIPT_DIR"/*/; do
         if [ -d "$plugin_dir" ] && [ -f "$plugin_dir/Dockerfile" ]; then
-            build_plugin "$plugin_dir"
             plugin_count=$((plugin_count + 1))
+            plugin_name=$(basename "$plugin_dir")
+
+            if build_plugin "$plugin_dir"; then
+                successful_plugins+=("$plugin_name")
+            else
+                failed_plugins+=("$plugin_name")
+            fi
         fi
     done
 
@@ -165,7 +176,40 @@ main() {
         exit 1
     fi
 
-    log_info "✓ Successfully built ${plugin_count} plugin(s)"
+    # Print summary
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+
+    echo ""
+    echo "================================================"
+    echo "Plugin Build Summary"
+    echo "================================================"
+
+    if [ ${#successful_plugins[@]} -gt 0 ]; then
+        echo -e "${GREEN}Successfully Built (${#successful_plugins[@]}):${NC}"
+        for plugin in "${successful_plugins[@]}"; do
+            echo "  ✓ $plugin"
+        done
+    fi
+
+    if [ ${#failed_plugins[@]} -gt 0 ]; then
+        echo ""
+        echo -e "${RED}Failed to Build (${#failed_plugins[@]}):${NC}"
+        for plugin in "${failed_plugins[@]}"; do
+            echo "  ✗ $plugin"
+        done
+        echo ""
+        echo -e "${RED}Plugin Build FAILED${NC}"
+        echo "Duration: ${duration}s"
+        echo ""
+        log_error "Build completed with ${#failed_plugins[@]} failure(s)"
+        exit 1
+    fi
+
+    echo ""
+    echo -e "${GREEN}All plugins built successfully!${NC}"
+    echo "Total: $plugin_count plugin(s)"
+    echo "Duration: ${duration}s"
 }
 
 # Run main
