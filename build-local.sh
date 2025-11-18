@@ -23,15 +23,23 @@ for folder in "$script_dir"/*; do
     if [ -d "$folder" ] && [ -f "$folder/Dockerfile" ]; then  # Check if it's a directory with Dockerfile
         plugin_name=$(basename "$folder")
         if [ -n "$DOCKER_REGISTRY" ]; then
-            image="${DOCKER_REGISTRY}/rediacc/plugin-$plugin_name"
+            # Use parametric tagging: strip rediacc/ for multi-level registries
+            slash_count=$(echo "$DOCKER_REGISTRY" | tr -cd '/' | wc -c)
+            if [ $slash_count -ge 2 ]; then
+                # Multi-level registry (e.g., ghcr.io/org/repo)
+                image="${DOCKER_REGISTRY}/plugin-$plugin_name"
+            else
+                # Flat registry (e.g., localhost:5000)
+                image="${DOCKER_REGISTRY}/rediacc/plugin-$plugin_name"
+            fi
         else
             image="rediacc/plugin-$plugin_name"
         fi
-        
+
         echo ""
         echo "Building $image:latest..."
         docker build --build-arg BASE_IMAGE="$BASE_IMAGE" -t "$image:latest" "$folder"
-        
+
         if [ $? -eq 0 ]; then
             echo "✓ Successfully built $image:latest"
         else
