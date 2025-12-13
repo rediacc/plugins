@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build script for SDK plugins - local build only (no push)
+# Build script for OPS plugins - local build only (no push)
 
 # Get the directory where the script is located
 script_dir=$(dirname "$0")
@@ -14,7 +14,7 @@ fi
 BASE_IMAGE=${SYSTEM_BASE_IMAGE:-"ubuntu:24.04"}
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-""}
 
-echo "Building SDK plugin Docker images..."
+echo "Building OPS plugin Docker images..."
 echo "Base image: $BASE_IMAGE"
 echo "Registry: ${DOCKER_REGISTRY:-<none>}"
 
